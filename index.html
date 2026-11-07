@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Net Game</title>
+    <script src="character.png"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; }
+        
+        body {
+            /* پس‌زمینه تیره شبکه‌ای نئونی دقیقاً مطابق با تصویر ارسالی شما */
+            background-color: #050b14;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(0, 119, 255, 0.15) 0%, transparent 70%);
+            background-size: 30px 30px, 30px 30px, 100% 100%;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* هدر بالا شامل لوگو، سکه و انرژی دقیقاً مشابه عکس */
+        .header-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 15px;
+            width: 100%;
+        }
+
+        .brand-badge {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            color: #00ffff;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .coins-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .coin-icon {
+            width: 28px;
+            height: 28px;
+            background: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 10px gold;
+        }
+
+        .coins-count {
+            font-size: 26px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* نوار انرژی دقیقاً مثل عکس */
+        .energy-container {
+            width: 85%;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 3px;
+            position: relative;
+        }
+
+        .energy-bar {
+            height: 12px;
+            background: linear-gradient(90deg, #0077ff, #00ffff);
+            border-radius: 5px;
+            width: 100%;
+            transition: width 0.2s ease;
+        }
+
+        .energy-text-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #00ffff;
+            margin-top: 4px;
+            padding: 0 2px;
+        }
+
+        /* بخش میانی و کاراکتر */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .character-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .character {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            filter: drop-shadow(0 0 25px rgba(0, 150, 255, 0.5));
+            transition: transform 0.06s ease;
+        }
+
+        .character:active {
+            transform: scale(0.92);
+        }
+
+        /* انیمیشن پرواز امتیاز +1 */
+        .floating-score {
+            position: absolute;
+            font-size: 26px;
+            font-weight: bold;
+            color: #00ffff;
+            animation: floatUp 0.8s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-90px) scale(1.4); }
+        }
+
+        /* تب‌های پایین صفحه (دقیقاً مشابه عکس با آیکون‌های TAP و SHOP) */
+        .tabs {
+            display: flex;
+            background: rgba(8, 18, 38, 0.95);
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            padding: 5px 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #8892b0;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #00ffff;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .tab-content.active { display: flex; }
+
+        /* استایل آیتم‌های فروشگاه */
+        .shop-box {
+            width: 90%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            padding: 14px 18px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .shop-item span {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .shop-item button {
+            background: linear-gradient(135deg, #0077ff, #00ffff);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+            transition: 0.2s;
+        }
+
+        .shop-item button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- هدر بالای صفحه (برند و سکه‌ها و انرژی) -->
+    <div class="header-panel">
+        <div class="brand-badge">⚡ VORTEX NET</div>
+        <div class="coins-row">
+            <div class="coin-icon">🪙</div>
+            <div class="coins-count" id="coinsCount">0</div>
+        </div>
+        <div class="energy-container">
+            <div class="energy-bar" id="energyBar"></div>
+            <div class="energy-text-row">
+                <span>⚡ ENERGY</span>
+                <span><span id="energyText">1000</span> / 1000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- تب تپ و بازی -->
+    <div id="tab-game" class="tab-content active">
+        <div class="character-container" id="tapArea">
+            <!-- لینک تصویر گیف دلخواه خود را جایگزین کنید -->
+            <img src="https://ibb.co/PZRrkLTY" alt="Vortex Character" class="character" id="charImg">
+        </div>
+    </div>
+
+    <!-- تب فروشگاه داخل بازی -->
+    <div id="tab-shop" class="tab-content">
+        <div class="shop-box">
+            <h3 style="color: #00ffff; text-align: center; margin-bottom: 5px;">فروشگاه جوایز Vortex</h3>
+            <div class="shop-item">
+                <span>۵۰۰ مگابایت VPN</span>
+                <button onclick="buyItem(5000, '۵۰۰ مگابایت VPN')">۵۰۰۰ سکه</button>
+            </div>
+            <div class="shop-item">
+                <span>۱ گیگابایت VPN</span>
+                <button onclick="buyItem(10000, '۱ گیگابایت VPN')">۱۰,۰۰۰ سکه</button>
+            </div>
+            <div class="shop-item">
+                <span>۱۰٪ تخفیف اشتراک</span>
+                <button onclick="buyItem(25000, 'تخفیف ۱۰ درصدی')">۲۵,۰۰۰ سکه</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- تب‌های پایین صفحه (مشابه تصویر ارسالی شما) -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('game', this)">
+            <span style="font-size: 18px;">🕹️</span>
+            TAP
+        </button>
+        <button class="tab-btn" onclick="switchTab('shop', this)">
+            <span style="font-size: 18px;">🛒</span>
+            SHOP
+        </button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // سیستم ذخیره‌سازی سکه‌ها برای جلوگیری از صفر شدن هنگام بستن بازی
+        let userCoins = localStorage.getItem('vortex_coins') ? parseInt(localStorage.getItem('vortex_coins')) : 0;
+        let energy = 1000;
+        const maxEnergy = 1000;
+
+        document.getElementById('coinsCount').innerText = userCoins;
+
+        // پر شدن خودکار انرژی هر ثانیه
+        setInterval(() => {
+            if (energy < maxEnergy) {
+                energy = Math.min(maxEnergy, energy + 3);
+                updateEnergyUI();
+            }
+        }, 1000);
+
+        function updateEnergyUI() {
+            document.getElementById('energyBar').style.width = (energy / maxEnergy) * 100 + '%';
+            document.getElementById('energyText').innerText = energy;
+        }
+
+        // عملکرد کلیک روی کاراکتر (تپ کردن)
+        const tapArea = document.getElementById('tapArea');
+        tapArea.addEventListener('click', (e) => {
+            if (energy > 0) {
+                energy -= 1;
+                userCoins += 1;
+                document.getElementById('coinsCount').innerText = userCoins;
+                localStorage.setItem('vortex_coins', userCoins);
+                updateEnergyUI();
+
+                // افکت پرواز عدد +1 دقیقاً در محل کلیک کاربر
+                const rect = tapArea.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const floatEl = document.createElement('div');
+                floatEl.className = 'floating-score';
+                floatEl.innerText = '+1';
+                floatEl.style.left = x + 'px';
+                floatEl.style.top = y + 'px';
+                tapArea.appendChild(floatEl);
+
+                setTimeout(() => floatEl.remove(), 800);
+            }
+        });
+
+        // سوئیچ بین تب‌های TAP و SHOP
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            if (tabName === 'game') {
+                document.getElementById('tab-game').classList.add('active');
+            } else {
+                document.getElementById('tab-shop').classList.add('active');
+            }
+            btn.classList.add('active');
+        }
+
+        // خرید از فروشگاه مینی‌اپ و بررسی موجودی سکه
+        function buyItem(cost, itemName) {
+            if (userCoins >= cost) {
+                userCoins -= cost;
+                document.getElementById('coinsCount').innerText = userCoins;
+                localStorage.setItem('vortex_coins', userCoins);
+                alert(`✅ درخواست شما برای "${itemName}" ثبت شد!\nلطفاً به ربات تلگرام برگردید و از بخش مربوطه درخواست خود را نهایی کنید.`);
+            } else {
+                alert('⚠️ سکه‌های شما برای دریافت این پاداش کافی نیست!');
+            }
+        }
+    </script>
+</body>
+</html>
